@@ -1,0 +1,170 @@
+//=========================================================
+// Name        : CS300_Project_2.cpp
+// Author      : Tim Brady
+// Version     : 1.0
+// Copyright   : Copyright © 2017 SNHU COCE
+// Description : Vector Sorting Algorithms
+//=========================================================
+
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <vector>
+
+using namespace std;
+
+
+// defining a structure to hold course info
+struct courseStruct {
+    string courseCode;
+    string courseName;
+    vector<string> preReq;
+};
+
+// print the course list
+void printCourseList(courseStruct course) {
+    cout << course.courseCode << ", " << course.courseName << endl;
+    return;
+}
+
+// loading data into struct
+vector<courseStruct> loadData(string fileName) {
+    ifstream file;
+    file.open(fileName, ios::in);
+    if (!file) {
+        cout << "Cannot open file \"" << fileName << "\". " << endl;
+    }
+    else {
+        cout << "File \"" << fileName << "\"" << " opened successfully. " << endl;
+        cout << endl;
+    }
+    string line;
+    vector<courseStruct> courseVec;
+
+    courseStruct course;
+
+    // parsing data for the struct
+    // I tried multiple different methods for the prerequisites but could not figure it out. I apologize.
+    while (getline(file, line) && !line.empty()) {
+        stringstream sstr(line);
+        string temp;
+        getline(sstr, course.courseCode, ',');
+        getline(sstr, course.courseName, ',');
+        if (!sstr) {
+            break;
+        }
+        courseVec.push_back(course);
+    }
+    file.close();
+
+    if (courseVec.size() == 0) {
+        cout << "No data in \"" << fileName << "\"." << endl;
+        cout << endl;
+    }
+
+    return courseVec;
+}
+
+// partition for quick sort
+int partition(vector<courseStruct>& courses, int begin, int end) {
+    int low = begin;
+    int high = end;
+    int pivot = begin + (end - begin) / 2;
+    bool sorted = false;
+
+    while (!sorted) {
+        // increment low index while low < pivot
+        while (courses[low].courseCode.compare(courses[pivot].courseCode) < 0) {
+            low++;
+        }
+        // decrement high index while pivot < high
+        while (courses[pivot].courseCode.compare(courses[high].courseCode) < 0) {
+            high--;
+        }
+        if (low >= high) {
+            sorted = true;
+        }
+        else {
+            swap(courses.at(low), courses.at(high));
+            low++;
+            high--;
+        }
+    }
+    return high;
+}
+
+// perform quick sort on courseCode
+void quickSort(vector<courseStruct>& courses, int begin, int end) {
+    int mid = 0;
+    if (begin >= end) {
+        return;
+    }
+    mid = partition(courses, begin, end);
+
+    quickSort(courses, begin, mid);
+
+    quickSort(courses, mid + 1, end);
+}
+
+// search for and print a specific course
+void printCourse(vector<courseStruct>& courses) {
+    string selectedCourse;
+    cout << "What course do you want to know about? ";
+    cin >> selectedCourse;
+    bool found = false;
+    cout << endl;
+
+    // for loop to search for course with matching courseCode
+    for (int i = 0; i < courses.size(); i++) {
+        if (courses[i].courseCode == selectedCourse) {
+            cout << courses[i].courseCode << ", " << courses[i].courseName << endl;
+            found = true;
+            break;
+        }
+    }
+    if (found == false) {
+        cout << "Course \"" << selectedCourse << "\" not found. " << endl;
+    }
+}
+
+int main() {
+    string fileName;
+    vector<courseStruct> course;
+
+    // Display menu
+    cout << "1. Load Data Structure" << endl;
+    cout << "2. Print Course List" << endl;
+    cout << "3. Print Course" << endl;
+    cout << "9. Exit" << endl;
+    int choice;
+
+    //switch for menu choice
+    do {
+        cout << "What would you like to do? ";
+        cin >> choice;
+        cout << endl;
+        switch (choice) {
+
+        case 1: cout << "Please enter a file name: " << endl;
+                cin >> fileName;
+                course = loadData(fileName);
+                quickSort(course, 0, course.size() - 1); break;
+
+        case 2: cout << "Here is a sample schedule: " << endl;
+                cout << endl;
+                for (int i = 0; i < course.size(); i++) {
+                    printCourseList(course[i]);
+                }
+                cout << endl; break;
+
+        case 3: printCourse(course);
+                cout << endl; break;
+
+        case 9: cout << "Goodbye" << endl; break;
+
+        default: cout << choice << " is not a valid option." << endl;
+        }
+    } while (choice != 9);
+    return 0;
+}
